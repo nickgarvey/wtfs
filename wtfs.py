@@ -3,6 +3,8 @@
 # wtfs.py will mount a filesystem at a directory and produce some
 #         files with spam messages inside
 #
+# Author: Nick Garvey
+#
 # The word list used to generate the filenames and the spam messages
 # are included directly in this file
 #
