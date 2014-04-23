@@ -1,9 +1,13 @@
 #!/usr/bin/env python
+#
 # wtfs.py will mount a filesystem at a directory and produce some
 #         files with spam messages inside
 #
 # The word list used to generate the filenames and the spam messages
 # are included directly in this file
+#
+# As this involves mounting and unmounting filesystems, you will need to be
+# root (or know how to use fusermount and be a member of the fuse group)
 
 
 import fuse
@@ -85,7 +89,7 @@ def main():
     if len(sys.argv) != 2:
         print "usage: {} mountpoint".format(sys.argv[0])
         sys.exit(1)
-    wtfs.parse(['-f', '-d', '-o', 'fsname=wtfs', sys.argv[1]])
+    wtfs.parse(['-o', 'fsname=wtfs', sys.argv[1]])
     wtfs.main()
 
 
