@@ -71,13 +71,8 @@ class WTFS(fuse.Fuse):
             st.st_mode = stat.S_IFREG | 0444
             st.st_nlink = 1
             st.st_ino = get_index(path)
-            st.st_uid = 0
-            st.st_gid = 0
             st.st_size = len(bytes(get_spam(path)))
         return st
-
-    def utime(self, path, times):
-        return 0
 
     def open(self, path, flags):
         return 0
