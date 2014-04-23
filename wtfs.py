@@ -18,6 +18,10 @@ import random
 import time
 
 
+DIR_ENTRY_RANGE = (8, 20)
+REGEN_CONTENTS_TIMEOUT = 3 # seconds
+
+
 def get_index(path):
     return path.__hash__() % len(SPAMS)
 
@@ -48,12 +52,12 @@ class WTFS(fuse.Fuse):
         now = int(time.time())
         self.last_readdir_time = now
         self.dir_contents = [fuse.Direntry(get_word(str(now + i)))
-                             for i in range(random.randint(8, 20))]
+                             for i in range(random.randint(*DIR_ENTRY_RANGE))]
 
     def readdir(self, path, offset):
         for dir_entry in self.dir_contents:
             now = int(time.time())
-            if self.last_readdir_time < now - 3:
+            if self.last_readdir_time < now - REGEN_CONTENTS_TIMEOUT:
                 self.__set_dir_contents()
             self.last_readdir_time = now
             yield dir_entry
@@ -62,7 +66,7 @@ class WTFS(fuse.Fuse):
         st = fuse.Stat()
         if path == '/':
             st.st_mode = stat.S_IFDIR | 0555
-            st.st_nlink = random.randint(1, 10)
+            st.st_nlink = len(self.dir_contents)
         else:
             st.st_mode = stat.S_IFREG | 0444
             st.st_nlink = 1
