@@ -79,8 +79,6 @@ class WTFS(fuse.Fuse):
         return 0
 
     def read(self, path, length, offset):
-        print "::", get_spam(path)
-        print ':!!', get_spam(path)[offset:offset+length], '!!'
         return bytes(get_spam(path)[offset:offset+length])
 
 
