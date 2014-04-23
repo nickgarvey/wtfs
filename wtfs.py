@@ -61,10 +61,10 @@ class WTFS(fuse.Fuse):
     def getattr(self, path):
         st = fuse.Stat()
         if path == '/':
-            st.st_mode = stat.S_IFDIR | 0755
+            st.st_mode = stat.S_IFDIR | 0555
             st.st_nlink = random.randint(1, 10)
         else:
-            st.st_mode = stat.S_IFREG | 0644
+            st.st_mode = stat.S_IFREG | 0444
             st.st_nlink = 1
             st.st_ino = get_index(path)
             st.st_uid = 0
