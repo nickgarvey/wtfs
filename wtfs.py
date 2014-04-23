@@ -28,6 +28,7 @@ def get_index(path):
 
 def get_spam(path):
     index = get_index(path)
+    # Fortune gives you the files in rot13 for some reason
     spam = SPAMS[index].decode('rot13')
     # First two lines are always "Today's Spam:" and a newline
     # so trim those and the final trailing newline
@@ -36,6 +37,7 @@ def get_spam(path):
 
 
 def get_word(seed):
+    # Use hashlib here so the directory entries are more random
     hash_int = hashlib.md5(seed).digest().__hash__()
     index = hash_int % len(WORDS)
     return WORDS[index]
