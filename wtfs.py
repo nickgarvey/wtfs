@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # wtfs.py will mount a filesystem at a directory and produce some
 #         files with spam messages inside
@@ -7,17 +7,15 @@
 #
 # The word list used to generate the filenames and the spam messages
 # are included directly in this file
-#
-# As this involves mounting and unmounting filesystems, you will need to be
-# root (or know how to use fusermount and be a member of the fuse group)
 
-
-import fuse
-import sys
-import stat
+import codecs
 import hashlib
 import random
+import stat
+import sys
 import time
+
+from fuse import FUSE, Operations
 
 
 DIR_ENTRY_RANGE = (8, 20)
@@ -29,9 +27,10 @@ def get_index(path):
 
 
 def get_spam(path):
+    rot13 = codecs.getencoder('rot-13')
     index = get_index(path)
     # Fortune gives you the files in rot13 for some reason
-    spam = SPAMS[index].decode('rot13')
+    spam = rot13(SPAMS[index])[0]
     # First two lines are always "Today's Spam:" and a newline
     # so trim those and the final trailing newline
     spam_text = "\n".join(spam.split('\n')[2:])
@@ -40,23 +39,25 @@ def get_spam(path):
 
 def get_word(seed):
     # Use hashlib here so the directory entries are more random
-    hash_int = hashlib.md5(seed).digest().__hash__()
+    md5 = hashlib.md5()
+    md5.update(seed)
+    hash_int = int.from_bytes(md5.digest(), byteorder='little')
     index = hash_int % len(WORDS)
     return WORDS[index]
 
 
-class WTFS(fuse.Fuse):
+class WTFS(Operations):
     def __init__(self, *args, **kwargs):
-        fuse.fuse_python_api = (0, 2)
-        fuse.Fuse.__init__(self, *args, **kwargs)
-        self.read_only = True
         self.__set_dir_contents()
 
     def __set_dir_contents(self):
         now = int(time.time())
         self.last_readdir_time = now
-        self.dir_contents = [fuse.Direntry(get_word(str(now + i)))
-                             for i in range(random.randint(*DIR_ENTRY_RANGE))]
+        self.dir_contents = (
+            ['.', '..'] +
+            [get_word((now + i).to_bytes(8, byteorder='little'))
+             for i in range(random.randint(*DIR_ENTRY_RANGE))]
+        )
 
     def readdir(self, path, offset):
         for dir_entry in self.dir_contents:
@@ -66,32 +67,38 @@ class WTFS(fuse.Fuse):
             self.last_readdir_time = now
             yield dir_entry
 
-    def getattr(self, path):
-        st = fuse.Stat()
+    def getattr(self, path, fh=None):
+        attrs = {
+            'st_atime': self.last_readdir_time,
+            'st_ctime': self.last_readdir_time,
+            'st_mtime': self.last_readdir_time,
+        }
         if path == '/':
-            st.st_mode = stat.S_IFDIR | 0555
-            st.st_nlink = len(self.dir_contents)
+            attrs.update({
+                'st_mode': stat.S_IFDIR | 0o555,
+                'st_nlink': len(self.dir_contents),
+            })
         else:
-            st.st_mode = stat.S_IFREG | 0444
-            st.st_nlink = 1
-            st.st_ino = get_index(path)
-            st.st_size = len(bytes(get_spam(path)))
-        return st
+            attrs.update({
+                'st_mode': stat.S_IFREG | 0o444,
+                'st_nlink': 1,
+                'st_ino': get_index(path),
+                'st_size': len(get_spam(path)),
+            })
+        return attrs
 
     def open(self, path, flags):
         return 0
 
-    def read(self, path, length, offset):
-        return bytes(get_spam(path)[offset:offset+length])
+    def read(self, path, length, offset, fh=None):
+        return get_spam(path)[offset:offset+length].encode('utf-8')
 
 
 def main():
-    wtfs = WTFS()
     if len(sys.argv) != 2:
-        print "usage: {} mountpoint".format(sys.argv[0])
+        print("usage: {} mountpoint".format(sys.argv[0]))
         sys.exit(1)
-    wtfs.parse(['-o', 'fsname=wtfs', sys.argv[1]])
-    wtfs.main()
+    fuse = FUSE(WTFS(), sys.argv[1])
 
 
 WORDS = """

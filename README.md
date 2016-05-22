@@ -9,10 +9,10 @@ A silly filesystem that should leave you saying "WTF?"
 `python wtfs.py mount_location`
 
 ## Setup ##
-Ubuntu:
+Ubuntu 16.04:
 ```
-sudo apt-get install python-fuse
 git clone https://github.com/nickgarvey/wtfs.git wtfs
+pip install fusepy
 ```
 
 
