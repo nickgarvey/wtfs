@@ -8,7 +8,15 @@ It generates a bunch of random filenames from a word list, with contents being s
 
 ## Usage ##
 
-`python wtfs.py mount_location`
+```
+$ python wtfs.py
+usage: wtfs.py mountpoint
+$ python wtfs.py /mnt/wtfs
+$ ls /mnt/wtfs
+agony  biographical  biped  caressed  clasps  converters nutted  outclassing  pretentiously thanks  twitches
+$ cat /mnt/wtfs/biped
+Do not visit this illegal websites!
+```
 
 ## Setup ##
 Ubuntu 16.04:
