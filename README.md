@@ -1,4 +1,4 @@
-# WTFS#
+# WTFS #
 A silly filesystem that should leave you saying "WTF?"
 
 It generates a bunch of random filenames from a word list, with contents being spam messages. The filenames and contents change over time.
